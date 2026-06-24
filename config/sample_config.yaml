@@ -11,6 +11,9 @@ align_tool: "bwa"
 variant_caller: "samtools"
 min_depth: 10
 
+# Features
+enable_annotation: false  # Set to true if SnpEff is installed
+
 # QC parameters
 fastqc_enabled: true
 skip_qc: false

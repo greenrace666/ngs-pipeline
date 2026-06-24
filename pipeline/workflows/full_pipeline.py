@@ -3,6 +3,7 @@ import subprocess
 from pipeline.stages.qc import run_fastqc, parse_fastq_basic
 from pipeline.stages.align import index_reference, align_reads
 from pipeline.stages.variant_call import call_variants
+from pipeline.stages.annotate import annotate_variants, parse_annotation
 from pipeline.stages.report import generate_html_report
 from pipeline.utils.logger import setup_logger
 
@@ -17,6 +18,7 @@ def run_full_pipeline(config, output_dir):
     fastq_input = config.get('fastq_input')
     reference = config.get('reference_genome')
     threads = config.get('threads', 4)
+    enable_annotation = config.get('enable_annotation', False)
     
     logger.info("=" * 60)
     logger.info("NGS PIPELINE STARTED")
@@ -53,11 +55,23 @@ def run_full_pipeline(config, output_dir):
     
     logger.info(f"Variants found: {variant_count}")
     
-    # Stage 5: Report
-    logger.info("\n[STAGE 5] Report Generation")
-    generate_html_report(output_dir, qc_stats, variant_count)
+    # Stage 5: Annotation (Optional)
+    annotation_data = None
+    if enable_annotation:
+        logger.info("\n[STAGE 5] Variant Annotation")
+        annotated_vcf = output_dir / 'variants_annotated.vcf.gz'
+        try:
+            annotate_variants(str(vcf_file), str(annotated_vcf))
+            annotation_data = parse_annotation(str(annotated_vcf))
+        except Exception as e:
+            logger.warning(f"Annotation stage failed: {str(e)}, continuing without annotation")
+            annotation_data = None
+    
+    # Stage 6: Report
+    logger.info("\n[STAGE 6] Report Generation")
+    generate_html_report(output_dir, qc_stats, variant_count, annotation_data)
     
     logger.info("\n" + "=" * 60)
-    logger.info("? PIPELINE COMPLETED SUCCESSFULLY")
+    logger.info("✅ PIPELINE COMPLETED SUCCESSFULLY")
     logger.info("=" * 60)
     logger.info(f"Results saved to: {output_dir}")
