@@ -1,0 +1,63 @@
+
+<html>
+<head>
+    <title>NGS Pipeline Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>NGS Pipeline Analysis Report</h1>
+    
+    <div class="section">
+        <h2>Summary</h2>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+            </tr>
+            
+            <tr>
+                <td>Total Reads</td>
+                <td>2</td>
+            </tr>
+            
+            <tr>
+                <td>Total Bases</td>
+                <td>80</td>
+            </tr>
+            
+            <tr>
+                <td>Avg Quality</td>
+                <td>40.0</td>
+            </tr>
+            
+            <tr>
+                <td>Variants Called</td>
+                <td>0</td>
+            </tr>
+            
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Quality Control</h2>
+        <pre>{
+  "reads": 2,
+  "total_bases": 80,
+  "avg_quality": 40.0,
+  "reads_per_mb": 25000.0
+}</pre>
+    </div>
+    
+    <div class="section">
+        <h2 class="success">? Pipeline Complete</h2>
+    </div>
+</body>
+</html>

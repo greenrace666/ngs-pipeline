@@ -1,7 +1,7 @@
 # NGS Pipeline Configuration
 
 # Input/Output
-fastq_input: "data/sample.fastq.gz"
+fastq_input: "data/test.fastq"
 reference_genome: "data/reference.fasta"
 output_dir: "./results"
 
