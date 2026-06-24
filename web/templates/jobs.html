@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}My Jobs - NGS Pipeline{% endblock %}
+
+{% block extra_css %}
+<style>
+    .job-card {
+        background: white;
+        border-left: 5px solid #3498db;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .job-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .job-actions { display: flex; gap: 0.5rem; }
+    .job-actions button { padding: 0.5rem 1rem; font-size: 0.9rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>My Jobs</h2>
+    
+    <div id="jobsList" style="margin-top: 1rem;">
+        <p style="color: #7f8c8d;">Loading jobs...</p>
+    </div>
+</div>
+
+<script>
+    async function loadJobs() {
+        try {
+            const res = await fetch('/api/jobs');
+            const jobs = await res.json();
+            
+            const container = document.getElementById('jobsList');
+            
+            if (jobs.length === 0) {
+                container.innerHTML = '<p style="color: #7f8c8d;">No jobs yet. <a href="/submit">Submit one now!</a></p>';
+                return;
+            }
+            
+            container.innerHTML = jobs.map(job => `
+                <div class="job-card">
+                    <div class="job-header">
+                        <div>
+                            <h3 style="margin: 0; margin-bottom: 0.5rem;">Job ${job.job_id}</h3>
+                            <span class="status-badge status-${job.status}">${job.status.toUpperCase()}</span>
+                        </div>
+                        <div class="job-actions">
+                            ${job.status === 'completed' ? `
+                                <button class="btn btn-success" onclick="downloadReport('${job.job_id}')">📄 Report</button>
+                                <button class="btn" onclick="downloadResults('${job.job_id}')">📦 Results</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${job.progress}%;"></div></div>
+                    <p style="font-size: 0.9rem; color: #7f8c8d;">
+                        Created: ${new Date(job.created_at).toLocaleString()}
+                    </p>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading jobs:', error);
+        }
+    }
+    
+    function downloadReport(jobId) {
+        window.location.href = `/api/job/${jobId}/report`;
+    }
+    
+    function downloadResults(jobId) {
+        window.location.href = `/api/job/${jobId}/download`;
+    }
+    
+    // Load initially and refresh every 5 seconds
+    loadJobs();
+    setInterval(loadJobs, 5000);
+</script>
+{% endblock %}

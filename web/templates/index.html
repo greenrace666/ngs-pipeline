@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Home - NGS Pipeline{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Welcome to NGS Pipeline</h2>
+    <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">
+        A production-grade bioinformatics pipeline for Next-Generation Sequencing data analysis.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+        <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 10px;">
+            <h3>🚀 Quick Start</h3>
+            <p>Upload your FASTQ and reference genome files to get started.</p>
+            <a href="/submit" class="btn btn-success" style="margin-top: 1rem;">Submit New Job</a>
+        </div>
+        
+        <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 10px;">
+            <h3>📊 View Results</h3>
+            <p>Check the status and results of your analysis jobs.</p>
+            <a href="/jobs" class="btn" style="margin-top: 1rem;">View Jobs</a>
+        </div>
+    </div>
+    
+    <h3 style="margin-top: 2rem;">Pipeline Stages</h3>
+    <ol style="line-height: 2; margin-left: 2rem;">
+        <li><strong>Quality Control</strong> - FastQC analysis of input reads</li>
+        <li><strong>Reference Indexing</strong> - Prepare reference genome for alignment</li>
+        <li><strong>Read Alignment</strong> - Map reads to reference using BWA-MEM</li>
+        <li><strong>Variant Calling</strong> - Call variants using SAMtools/BCFtools</li>
+        <li><strong>Annotation</strong> - Annotate variants (optional)</li>
+        <li><strong>Report Generation</strong> - Create comprehensive HTML report</li>
+    </ol>
+</div>
+{% endblock %}

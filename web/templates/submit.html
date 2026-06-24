@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Job - NGS Pipeline{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container { max-width: 600px; }
+    .upload-zone {
+        border: 2px dashed #3498db;
+        border-radius: 10px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+        background: #ecf0f1;
+    }
+    .upload-zone:hover { background: #d5dbdb; }
+    .upload-zone.dragover { border-color: #2980b9; background: #d5dbdb; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card form-container">
+    <h2>Submit New Job</h2>
+    
+    <form id="jobForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>FASTQ File</label>
+            <div class="upload-zone" id="fastqZone">
+                <p>Drag and drop your FASTQ file here or click to select</p>
+                <input type="file" id="fastqFile" name="fastq" accept=".fastq,.fq,.fastq.gz,.fq.gz" style="display: none;">
+            </div>
+            <p id="fastqName" style="margin-top: 0.5rem; color: #27ae60;"></p>
+        </div>
+        
+        <div class="form-group">
+            <label>Reference Genome (FASTA)</label>
+            <div class="upload-zone" id="refZone">
+                <p>Drag and drop your reference FASTA file here or click to select</p>
+                <input type="file" id="refFile" name="reference" accept=".fasta,.fa,.fasta.gz,.fa.gz" style="display: none;">
+            </div>
+            <p id="refName" style="margin-top: 0.5rem; color: #27ae60;"></p>
+        </div>
+        
+        <div class="form-group">
+            <label for="threads">Number of Threads</label>
+            <input type="number" id="threads" name="threads" value="4" min="1" max="64">
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="enableAnnotation" name="enable_annotation">
+                Enable Variant Annotation (requires SnpEff)
+            </label>
+        </div>
+        
+        <button type="submit" class="btn btn-success">Submit Job</button>
+    </form>
+    
+    <div id="loading" style="display: none; margin-top: 2rem;">
+        <p>Submitting job...</p>
+        <div class="progress-bar"><div class="progress-fill" style="width: 50%;"></div></div>
+    </div>
+</div>
+
+<script>
+    // Drag and drop
+    ['fastqZone', 'refZone'].forEach(id => {
+        const zone = document.getElementById(id);
+        const input = zone.querySelector('input');
+        
+        zone.addEventListener('click', () => input.click());
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('dragover');
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) input.files = files;
+            updateFileName(id);
+        });
+        
+        input.addEventListener('change', () => updateFileName(id));
+    });
+    
+    function updateFileName(zoneId) {
+        const zone = document.getElementById(zoneId);
+        const input = zone.querySelector('input');
+        const nameEl = document.getElementById(zoneId === 'fastqZone' ? 'fastqName' : 'refName');
+        if (input.files.length) {
+            nameEl.textContent = '✓ ' + input.files[0].name;
+        }
+    }
+    
+    // Form submit
+    document.getElementById('jobForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        
+        const fastqFile = document.getElementById('fastqFile').files[0];
+        const refFile = document.getElementById('refFile').files[0];
+        
+        if (!fastqFile || !refFile) {
+            alert('Please select both files');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('fastq', fastqFile);
+        formData.append('reference', refFile);
+        formData.append('threads', document.getElementById('threads').value);
+        formData.append('enable_annotation', document.getElementById('enableAnnotation').checked);
+        
+        document.getElementById('jobForm').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+        
+        try {
+            const res = await fetch('/api/job', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                alert('Job submitted! ID: ' + data.job_id);
+                window.location.href = '/jobs';
+            } else {
+                alert('Error submitting job');
+            }
+        } catch (error) {
+            alert('Error: ' + error);
+        }
+    });
+</script>
+{% endblock %}
