@@ -1,95 +1,543 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGS Pipeline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-{% block title %}Home - NGS Pipeline{% endblock %}
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #fafbfc;
+            --bg-tertiary: #f3f5f8;
+            --border: #e5e7eb;
+            --border-light: #f0f1f3;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            --accent: #0066cc;
+            --accent-hover: #0052a3;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
 
-{% block content %}
-<div class="hero">
-    <h1>NGS Data Analysis Platform</h1>
-    <p>Professional-grade bioinformatics pipeline for next-generation sequencing</p>
-</div>
+        html { scroll-behavior: smooth; }
 
-<div class="container">
-    <div class="grid">
-        <div class="feature-box">
-            <div class="feature-icon">⚡</div>
-            <h3>Fast & Efficient</h3>
-            <p>Optimized pipeline for quick analysis</p>
-            <a href="/submit" class="btn btn-primary btn-small">Get Started</a>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+        h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -0.02em; }
+        h2 { font-size: 1.875rem; font-weight: 700; letter-spacing: -0.01em; }
+        h3 { font-size: 1.125rem; font-weight: 600; }
+        h4 { font-size: 0.95rem; font-weight: 600; }
+        p { color: var(--text-secondary); margin-bottom: 0.5rem; }
+
+        .header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1rem; font-weight: 700; color: var(--text-primary);
+            letter-spacing: -0.01em; display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .logo-mark {
+            width: 28px; height: 28px; background: var(--accent); border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem; font-weight: 700; color: white;
+        }
+
+        .nav { display: flex; gap: 2rem; }
+
+        .nav a {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.85rem; font-weight: 500;
+            transition: color 0.2s ease; position: relative;
+        }
+
+        .nav a::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+            height: 2px; background: var(--accent);
+            transform: scaleX(0); transform-origin: right; transition: transform 0.2s ease;
+        }
+
+        .nav a:hover { color: var(--text-primary); }
+        .nav a:hover::after { transform: scaleX(1); transform-origin: left; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 4rem 2rem; }
+
+        .hero { text-align: center; margin-bottom: 5rem; }
+        .hero h1 { margin-bottom: 1rem; color: var(--text-primary); }
+        .hero p { font-size: 1rem; color: var(--text-secondary); max-width: 650px; margin: 0 auto 2rem; line-height: 1.7; }
+        .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0.7rem 1.8rem; background: var(--accent); color: white;
+            border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600;
+            font-family: 'Inter', sans-serif; cursor: pointer;
+            transition: all 0.2s ease; text-decoration: none; letter-spacing: 0.01em;
+        }
+
+        .btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-secondary {
+            background: transparent; color: var(--text-primary); border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { background: var(--bg-secondary); border-color: var(--text-secondary); }
+
+        .btn-small { padding: 0.5rem 1rem; font-size: 0.8rem; }
+
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 5rem; }
+
+        .feature-card {
+            padding: 2rem; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--bg-secondary); transition: all 0.2s ease;
+        }
+        .feature-card:hover { border-color: var(--accent); background: var(--bg-primary); }
+        .feature-icon { font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 1rem; letter-spacing: 0.05em; text-transform: uppercase; }
+        .feature-card h3 { margin-bottom: 0.75rem; }
+        .feature-card p { font-size: 0.9rem; line-height: 1.6; }
+
+        .stages-section { padding: 3rem 0; margin-bottom: 5rem; }
+        .stages-section h2 { margin-bottom: 0.5rem; }
+        .stages-desc { color: var(--text-tertiary); margin-bottom: 2.5rem; font-size: 0.95rem; }
+        .stages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1.5rem; }
+
+        .stage {
+            padding: 1.5rem 1.2rem; border-radius: 8px; border: 1px solid var(--border);
+            text-align: center; background: var(--bg-secondary); transition: all 0.2s ease;
+        }
+        .stage:hover { border-color: var(--accent); background: var(--bg-primary); }
+        .stage-num { font-size: 0.7rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.8rem; font-family: 'JetBrains Mono', monospace; }
+        .stage h4 { margin-bottom: 0.3rem; }
+        .stage p { font-size: 0.8rem; color: var(--text-tertiary); }
+
+        .form-container { margin: 5rem 0; padding: 4rem 0 0; border-top: 1px solid var(--border); }
+        .form-header { text-align: center; margin-bottom: 3rem; }
+        .form-header h2 { margin-bottom: 0.75rem; }
+        .form-header p { color: var(--text-secondary); max-width: 500px; margin: 0 auto; font-size: 0.95rem; }
+
+        .submit-container { max-width: 700px; margin: 0 auto; }
+
+        .form-section {
+            padding: 2.5rem; border-radius: 8px;
+            border: 1px solid var(--border); background: var(--bg-secondary);
+        }
+
+        .form-group { margin-bottom: 2rem; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        label { display: block; color: var(--text-primary); font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem; }
+
+        .upload-box {
+            border: 1px dashed var(--border); border-radius: 8px; padding: 2rem;
+            text-align: center; cursor: pointer; transition: all 0.2s ease; background: var(--bg-primary);
+        }
+        .upload-box:hover { border-color: var(--accent); background: var(--bg-tertiary); }
+        .upload-box.dragover { border-color: var(--accent); background: var(--bg-tertiary); }
+        .upload-box p { color: var(--text-secondary); margin: 0; font-size: 0.9rem; }
+
+        .file-selected { color: var(--success); font-weight: 600; margin-top: 0.75rem; font-size: 0.85rem; display: none; }
+
+        input[type="number"] {
+            display: block; width: 100%; padding: 0.75rem 1rem;
+            background: var(--bg-primary); color: var(--text-primary);
+            border: 1px solid var(--border); border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; transition: all 0.2s ease;
+        }
+        input[type="number"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1); }
+
+        .checkbox-group { display: flex; align-items: center; gap: 0.75rem; }
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
+        .checkbox-group label { margin: 0; font-weight: 500; cursor: pointer; }
+
+        .form-message {
+            padding: 0.85rem 1rem; border-radius: 6px; font-size: 0.875rem;
+            font-weight: 500; margin-top: 1rem; display: none;
+        }
+        .form-message.success { background: #d1fae5; color: #065f46; display: block; }
+        .form-message.error { background: #fee2e2; color: #7f1d1d; display: block; }
+
+        .jobs-header { text-align: center; margin: 5rem 0 3rem; padding: 4rem 0 0; border-top: 1px solid var(--border); }
+        .jobs-header h2 { margin-bottom: 0.5rem; }
+        .jobs-header p { color: var(--text-secondary); font-size: 0.95rem; }
+
+        .jobs-container { background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+        .jobs-title { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); background: var(--bg-primary); }
+        .jobs-title h3 { margin: 0; }
+
+        .job-item {
+            padding: 1.5rem 2rem; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 2rem; transition: background 0.2s ease;
+        }
+        .job-item:last-child { border-bottom: none; }
+        .job-item:hover { background: var(--bg-primary); }
+
+        .job-info { flex: 1; }
+        .job-id { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; font-family: 'JetBrains Mono', monospace; }
+        .job-date { font-size: 0.8rem; color: var(--text-tertiary); }
+
+        .job-status {
+            display: inline-block; padding: 0.4rem 0.8rem; border-radius: 4px;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; white-space: nowrap;
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-running { background: #dbeafe; color: #1e40af; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-failed { background: #fee2e2; color: #7f1d1d; }
+
+        .progress-bar { width: 100px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); transition: width 0.5s ease; }
+
+        .job-actions { display: flex; gap: 0.75rem; white-space: nowrap; }
+
+        .jobs-empty { text-align: center; padding: 3rem 2rem; color: var(--text-tertiary); font-size: 0.9rem; }
+
+        .footer {
+            text-align: center; padding: 3rem 2rem;
+            border-top: 1px solid var(--border); color: var(--text-tertiary);
+            font-size: 0.8rem; margin-top: 3rem;
+        }
+        .footer p { margin: 0.25rem 0; }
+
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 1rem; padding: 1rem; }
+            .nav { gap: 1.5rem; }
+            h1 { font-size: 1.875rem; }
+            h2 { font-size: 1.5rem; }
+            .container { padding: 2rem 1rem; }
+            .hero { margin-bottom: 3rem; }
+            .hero-actions { flex-direction: column; gap: 0.75rem; }
+            .btn { width: 100%; }
+            .stages-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+            .stage { padding: 1.2rem 0.8rem; }
+            .feature-card { padding: 1.5rem; }
+            .form-section { padding: 1.75rem; }
+            .job-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .job-actions { width: 100%; flex-direction: column; }
+            .btn-small { width: 100%; }
+            .progress-bar { width: 100%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            <div class="logo-mark">λ</div>
+            NGS Pipeline
         </div>
-        
-        <div class="feature-box">
-            <div class="feature-icon">🔬</div>
-            <h3>Scientific Grade</h3>
-            <p>Production-grade bioinformatics tools</p>
-        </div>
-        
-        <div class="feature-box">
-            <div class="feature-icon">📊</div>
-            <h3>Detailed Reports</h3>
-            <p>Comprehensive analysis reports</p>
+        <div class="nav">
+            <a href="#hero">Home</a>
+            <a href="#submit">Submit</a>
+            <a href="#jobs">Jobs</a>
         </div>
     </div>
-    
-    <div class="card">
-        <h2>How It Works</h2>
-        <div class="grid" style="margin-top: 2rem;">
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">1️⃣</div>
-                <h4>Upload Files</h4>
-                <p>Submit your FASTQ and reference genome</p>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">2️⃣</div>
-                <h4>Configure</h4>
-                <p>Set analysis parameters</p>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">3️⃣</div>
-                <h4>Analyze</h4>
-                <p>Pipeline runs automatically</p>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">4️⃣</div>
-                <h4>Results</h4>
-                <p>Get detailed reports & data</p>
+
+    <div class="container">
+
+        <!-- HERO -->
+        <div class="hero" id="hero">
+            <h1>NGS Pipeline</h1>
+            <p>Enterprise bioinformatics platform for genomic sequencing analysis. Quality control, alignment, variant calling, and annotation in a single workflow.</p>
+            <div class="hero-actions">
+                <a href="#submit" class="btn">Start Analysis</a>
+                <a href="#stages" class="btn btn-secondary">Learn More</a>
             </div>
         </div>
-    </div>
-    
-    <div class="card">
-        <h2>Pipeline Stages</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
-            <div style="padding: 1rem; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea;">
-                <h4 style="margin: 0 0 0.5rem 0;">Quality Control</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #718096;">FastQC analysis</p>
+
+        <!-- FEATURES -->
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">Performance</div>
+                <h3>High Performance</h3>
+                <p>Optimized algorithms and parallel processing for rapid analysis of large genomic datasets.</p>
             </div>
-            <div style="padding: 1rem; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea;">
-                <h4 style="margin: 0 0 0.5rem 0;">Alignment</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #718096;">BWA-MEM mapping</p>
+            <div class="feature-card">
+                <div class="feature-icon">Science</div>
+                <h3>Scientific Grade</h3>
+                <p>Industry-standard tools and validated methodologies for research and clinical applications.</p>
             </div>
-            <div style="padding: 1rem; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea;">
-                <h4 style="margin: 0 0 0.5rem 0;">Variant Calling</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #718096;">SAMtools/BCFtools</p>
-            </div>
-            <div style="padding: 1rem; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea;">
-                <h4 style="margin: 0 0 0.5rem 0;">Annotation</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #718096;">SnpEff integration</p>
-            </div>
-            <div style="padding: 1rem; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea;">
-                <h4 style="margin: 0 0 0.5rem 0;">Reporting</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #718096;">HTML reports</p>
-            </div>
-            <div style="padding: 1rem; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea;">
-                <h4 style="margin: 0 0 0.5rem 0;">Downloads</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #718096;">Results in ZIP</p>
+            <div class="feature-card">
+                <div class="feature-icon">Analytics</div>
+                <h3>Detailed Reports</h3>
+                <p>Comprehensive quality metrics, coverage analysis, and variant annotations in interactive reports.</p>
             </div>
         </div>
+
+        <!-- PIPELINE STAGES -->
+        <div class="stages-section" id="stages">
+            <h2>Analysis Pipeline</h2>
+            <p class="stages-desc">Six-stage workflow from raw sequencing data to annotated variants</p>
+            <div class="stages-grid">
+                <div class="stage"><div class="stage-num">01</div><h4>Quality Control</h4><p>FastQC</p></div>
+                <div class="stage"><div class="stage-num">02</div><h4>Index Setup</h4><p>BWA Index</p></div>
+                <div class="stage"><div class="stage-num">03</div><h4>Alignment</h4><p>Read Mapping</p></div>
+                <div class="stage"><div class="stage-num">04</div><h4>Variant Call</h4><p>BCFtools</p></div>
+                <div class="stage"><div class="stage-num">05</div><h4>Annotation</h4><p>SnpEff</p></div>
+                <div class="stage"><div class="stage-num">06</div><h4>Report</h4><p>HTML Output</p></div>
+            </div>
+        </div>
+
+        <!-- SUBMIT FORM -->
+        <div class="form-container" id="submit">
+            <div class="form-header">
+                <h2>Submit New Analysis</h2>
+                <p>Upload sequencing data and configure pipeline parameters</p>
+            </div>
+            <div class="submit-container">
+                <div class="form-section">
+                    <form id="jobForm" enctype="multipart/form-data">
+
+                        <div class="form-group">
+                            <label>Sequencing Reads (FASTQ)</label>
+                            <div class="upload-box" id="fastqZone">
+                                <p>Drag files here or click to browse</p>
+                                <p class="file-selected" id="fastqName"></p>
+                            </div>
+                            <input type="file" id="fastqFile" name="fastq"
+                                   accept=".fastq,.fq,.fastq.gz,.fq.gz" style="display:none;">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Reference Genome (FASTA)</label>
+                            <div class="upload-box" id="refZone">
+                                <p>Drag files here or click to browse</p>
+                                <p class="file-selected" id="refName"></p>
+                            </div>
+                            <input type="file" id="refFile" name="reference"
+                                   accept=".fasta,.fa,.fasta.gz,.fa.gz" style="display:none;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="threads">CPU Threads</label>
+                            <input type="number" id="threads" name="threads" value="4" min="1" max="128">
+                        </div>
+
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="annotation" name="enable_annotation">
+                                <label for="annotation">Enable Variant Annotation (SnpEff)</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn" id="submitBtn"
+                                style="width: 100%; padding: 0.85rem; margin-top: 1.5rem;">
+                            Submit Analysis
+                        </button>
+
+                        <div class="form-message" id="formMessage"></div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- JOBS HISTORY -->
+        <div class="jobs-header" id="jobs">
+            <h2>Analysis History</h2>
+            <p>View and manage your submitted analyses</p>
+        </div>
+        <div class="jobs-container">
+            <div class="jobs-title">
+                <h3>Your Jobs</h3>
+            </div>
+            <div id="jobsList">
+                <div class="jobs-empty">Loading jobs...</div>
+            </div>
+        </div>
+
     </div>
-    
-    <div style="text-align: center; margin: 3rem 0;">
-        <a href="/submit" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;">
-            🚀 Start Analysis Now
-        </a>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p>NGS Pipeline v0.4.0 · Enterprise Bioinformatics Platform</p>
+        <p>© 2026 Professional Grade Genomic Analysis</p>
     </div>
-</div>
-{% endblock %}
+
+    <script>
+        // ── File Upload ──────────────────────────────────────────────
+        function setupUploadZone(zoneId, inputId, nameId) {
+            const zone  = document.getElementById(zoneId);
+            const input = document.getElementById(inputId);
+            const nameEl = document.getElementById(nameId);
+
+            zone.addEventListener('click', () => input.click());
+
+            zone.addEventListener('dragover', e => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    showFileName(nameEl, input.files[0].name);
+                }
+            });
+            input.addEventListener('change', () => {
+                if (input.files.length) showFileName(nameEl, input.files[0].name);
+            });
+        }
+
+        function showFileName(el, name) {
+            el.textContent = '✓ ' + name;
+            el.style.display = 'block';
+        }
+
+        setupUploadZone('fastqZone', 'fastqFile', 'fastqName');
+        setupUploadZone('refZone',   'refFile',   'refName');
+
+        // ── Form Submit ──────────────────────────────────────────────
+        document.getElementById('jobForm').addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const fastq = document.getElementById('fastqFile').files[0];
+            const ref   = document.getElementById('refFile').files[0];
+            const msg   = document.getElementById('formMessage');
+            const btn   = document.getElementById('submitBtn');
+
+            msg.className = 'form-message';
+            msg.style.display = 'none';
+
+            if (!fastq || !ref) {
+                msg.textContent = 'Please select both a FASTQ file and a reference genome.';
+                msg.className = 'form-message error';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('fastq', fastq);
+            formData.append('reference', ref);
+            formData.append('threads', document.getElementById('threads').value);
+            formData.append('enable_annotation',
+                document.getElementById('annotation').checked ? 'on' : '');
+
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+
+            try {
+                const res  = await fetch('/api/job', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (res.ok) {
+                    msg.textContent = `Job submitted! ID: ${data.job_id} — scroll down to monitor progress.`;
+                    msg.className = 'form-message success';
+                    document.getElementById('jobForm').reset();
+                    document.getElementById('fastqName').style.display = 'none';
+                    document.getElementById('refName').style.display   = 'none';
+                    loadJobs();
+                    document.getElementById('jobs').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    msg.textContent = 'Error: ' + (data.error || 'Unknown error');
+                    msg.className = 'form-message error';
+                }
+            } catch (err) {
+                msg.textContent = 'Network error: ' + err.message;
+                msg.className = 'form-message error';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit Analysis';
+            }
+        });
+
+        // ── Jobs Polling ─────────────────────────────────────────────
+        async function loadJobs() {
+            try {
+                const res  = await fetch('/api/jobs');
+                const jobs = await res.json();
+                renderJobs(jobs);
+            } catch (err) {
+                console.error('Failed to load jobs:', err);
+            }
+        }
+
+        function renderJobs(jobs) {
+            const container = document.getElementById('jobsList');
+
+            if (!jobs.length) {
+                container.innerHTML = '<div class="jobs-empty">No analyses submitted yet.</div>';
+                return;
+            }
+
+            const statusClass = {
+                pending:   'status-pending',
+                running:   'status-running',
+                completed: 'status-completed',
+                failed:    'status-failed'
+            };
+
+            container.innerHTML = jobs.map(job => {
+                const date = new Date(job.created_at).toLocaleString();
+                const actions = job.status === 'completed' ? `
+                    <div class="job-actions">
+                        <button class="btn btn-small"
+                            onclick="window.location.href='/api/job/${job.job_id}/report'">
+                            Report
+                        </button>
+                        <button class="btn btn-small btn-secondary"
+                            onclick="window.location.href='/api/job/${job.job_id}/download'">
+                            Download
+                        </button>
+                    </div>` : `<div class="job-actions"></div>`;
+
+                const errorMsg = job.status === 'failed' && job.error
+                    ? `<div style="font-size:0.8rem;color:var(--danger);margin-top:0.25rem;">${job.error}</div>`
+                    : '';
+
+                return `
+                    <div class="job-item">
+                        <div class="job-info">
+                            <div class="job-id">Analysis ${job.job_id}</div>
+                            <div class="job-date">${date}</div>
+                            ${errorMsg}
+                        </div>
+                        <span class="job-status ${statusClass[job.status] || ''}">
+                            ${job.status.toUpperCase()}
+                        </span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${job.progress}%;"></div>
+                        </div>
+                        ${actions}
+                    </div>`;
+            }).join('');
+        }
+
+        // Load on page open, then poll every 4 seconds
+        loadJobs();
+        setInterval(loadJobs, 4000);
+    </script>
+
+</body>
+</html>
