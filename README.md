@@ -1,101 +1,127 @@
-# NGS Data Processing Pipeline
+# NGS Pipeline
 
-A **production-grade, end-to-end bioinformatics pipeline** for processing Next-Generation Sequencing (NGS) data.
-
-![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+NGS Pipeline is a small Windows-friendly sequencing analysis app with both a CLI and a Streamlit UI. It performs basic read QC, lightweight alignment, variant calling, optional annotation, and report generation.
 
 ## Features
 
-- ✅ Automated Quality Control (FastQC)
-- ✅ Read Alignment (BWA-MEM)
-- ✅ Variant Calling (SAMtools/BCFtools)
-- ✅ HTML Report Generation
-- ✅ YAML Configuration Support
-- ✅ Docker Support (coming soon)
-- ✅ CI/CD Integration (coming soon)
+- FASTQ quality control with read and base summaries
+- FASTA reference loading and in-memory k-mer indexing
+- Seeded local alignment on both forward and reverse-complement strands
+- Variant calling from aligned reads
+- Optional real variant annotation via MyVariant.info
+- Markdown report generation
+- Streamlit web interface for submitting and reviewing jobs
+- CLI workflow for batch runs
+- Designed to run on Windows with standard Python tooling
 
-## Quick Start
+## Install
 
-```bash
-# Install
-git clone https://github.com/Dhanu577/ngs-pipeline.git
-cd ngs-pipeline
-python3 -m venv venv
-source venv/bin/activate
-pip install -e .
-pip install -r requirements.txt
+This project is intended to be installed with `uv`.
 
-# Run
-ngs-pipeline run --config config/sample_config.yaml --output results/
+```powershell
+uv sync
 ```
 
-## Pipeline Stages
+If you only want the runtime dependencies without creating a full project environment:
 
-1. Quality Control (FastQC)
-2. Reference Indexing (BWA)
-3. Read Alignment (BWA-MEM)
-4. Variant Calling (SAMtools/BCFtools)
-5. Report Generation (HTML)
+```powershell
+uv pip install --system biopython click levenshtein myvariant pyyaml streamlit vcfpy
+```
+
+## Quickstart
+
+Fastest way to install and launch the latest Windows build from GitHub Releases:
+
+```powershell
+irm https://github.com/greenrace666/ngs-pipeline/releases/latest/download/installer.ps1 | iex
+```
+
+Safer two-step option:
+
+```powershell
+irm https://github.com/greenrace666/ngs-pipeline/releases/latest/download/installer.ps1 -OutFile installer.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\installer.ps1
+```
+
+## Input
+
+The pipeline expects:
+
+- `FASTQ` or `FQ` reads
+- `FASTA` or `FA` reference genome
+- YAML config for CLI execution
+
+### YAML Config Example
+
+```yaml
+fastq_input: C:\data\reads.fastq
+reference_genome: C:\data\reference.fasta
+threads: 4
+enable_annotation: true
+annotation_assembly: hg38
+```
+
+Required keys:
+
+- `fastq_input`
+- `reference_genome`
+
+Optional keys:
+
+- `threads` default: `4`
+- `enable_annotation` default: `false`
+- `annotation_assembly` default: `hg38`; supported values depend on MyVariant.info, commonly `hg38` and `hg19`
 
 ## Output
 
-- `aligned.bam` - Aligned reads
-- `variants.vcf.gz` - Variant calls
-- `report.html` - Summary report
-- `qc/` - FastQC results
+Each run writes a results directory containing:
 
-## Configuration
+- `alignments.tsv` - alignment summary table
+- `variants.vcf.gz` - called variants
+- `variants_annotated.vcf.gz` - annotated VCF when annotation is enabled
+- `report.md` - Markdown analysis report
 
-Edit `config/sample_config.yaml`:
+The Streamlit job view also stores:
 
-```yaml
-fastq_input: "data/sample.fastq.gz"
-reference_genome: "data/reference.fasta"
-output_dir: "./results"
-threads: 4
+- `job_info.json` - job status and progress
+- `*_results.zip` - downloadable archive of completed outputs
+
+## CLI
+
+Show help:
+
+```powershell
+python main.py --help
+python main.py run --help
 ```
 
-## Author
+Run the pipeline:
 
-Dhanuska - Bioinformatics Student, Tamil Nadu, India
+```powershell
+python main.py run --config config.yml --output results
+```
+
+## Streamlit UI
+
+Launch the web app:
+
+```powershell
+python main.py
+```
+
+or, if you prefer the standard Streamlit entrypoint:
+
+```powershell
+streamlit run main.py
+```
+
+## Behavior
+
+- Reads are aligned against the reference using a simple seed-and-compare strategy.
+- Alignments are stored as TSV rather than BAM, which keeps the implementation compact and Windows-safe.
+- Variant calls are written to compressed VCF output.
+- Annotation uses the `myvariant` Python client to query MyVariant.info and adds real annotation fields such as `ANN`, `MV_GENE`, `MV_CLNSIG`, `MV_CADD_PHRED`, and `MV_AF` when available. This requires internet access when annotation is enabled.
 
 ## License
 
-MIT
-
----
-
-## 🐳 Docker
-
-### Build Image
-
-```bash
-docker build -t ngs-pipeline:latest .
-```
-
-### Run with Docker
-
-```bash
-docker run -v $(pwd)/data:/app/data -v $(pwd)/results:/app/results ngs-pipeline:latest \
-  run --config /app/config/sample_config.yaml --output /app/results/docker_run
-```
-
-### Run with Docker Compose
-
-```bash
-docker-compose up
-```
-
-This will:
-- Build the image
-- Mount your data and results directories
-- Run the pipeline in a container
-- Keep all output in `./results`
-
-### Verify Docker Works
-
-```bash
-docker build -t ngs-pipeline .
-docker run ngs-pipeline run --help
-```
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
