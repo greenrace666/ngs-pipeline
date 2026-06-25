@@ -7,19 +7,21 @@ from datetime import datetime
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, send_file
 
+# Creates the Flask web app and sets a 500MB max upload limit.
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
 
+# JOBS is an in-memory dictionary to store all jobs. The two folders are where uploaded files and results get saved on disk.
 JOBS = {}
-# Already defined above with APP_DIR
 import os
-# Get the directory where app.py is located
-APP_DIR = Path(__file__).parent.parent  # Go up one level from web/ to root
+APP_DIR = Path(__file__).parent.parent  
 RESULTS_FOLDER = APP_DIR / 'web_results'
 UPLOAD_FOLDER = APP_DIR / 'uploads'
 UPLOAD_FOLDER.mkdir(exist_ok=True)
 RESULTS_FOLDER.mkdir(exist_ok=True)
 
+# Defines what a "job" looks like — its ID, status, progress percentage, timestamps, and error message. 
+# The to_dict() method converts it to JSON so it can be sent to the browser.
 class PipelineJob:
     def __init__(self, job_id):
         self.job_id = job_id
@@ -43,6 +45,11 @@ class PipelineJob:
             'error': self.error,
         }
 
+# The actual work happens here:
+#        Copies uploaded files into a job-specific folder
+#        Writes a config YAML file
+#        Runs ngs-pipeline as a terminal command
+#        Sets job status to completed or failed based on the result
 def run_pipeline_job(job_id, fastq_file, reference_file, config):
     job = JOBS[job_id]
     job.status = 'running'
@@ -85,6 +92,8 @@ def run_pipeline_job(job_id, fastq_file, reference_file, config):
 def index():
     return render_template('index.html')
 
+# Receives the uploaded files, saves them, creates a job object, then launches run_pipeline_job 
+#                 in a background thread so the response returns immediately without waiting.
 @app.route('/api/job', methods=['POST'])
 def create_job():
     try:
@@ -114,17 +123,20 @@ def create_job():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Returns a list of all jobs, newest first.
 @app.route('/api/jobs', methods=['GET'])
 def list_jobs():
     jobs = sorted(JOBS.values(), key=lambda j: j.created_at, reverse=True)
     return jsonify([j.to_dict() for j in jobs])
 
+# Returns status/progress of one specific job.
 @app.route('/api/job/<job_id>', methods=['GET'])
 def get_job(job_id):
     if job_id not in JOBS:
         return jsonify({'error': 'Job not found'}), 404
     return jsonify(JOBS[job_id].to_dict())
 
+# Returns just the error message for a failed job.
 @app.route('/api/job/<job_id>/error', methods=['GET'])
 def get_job_error(job_id):
     if job_id not in JOBS:
@@ -136,7 +148,7 @@ def get_job_error(job_id):
         'error': job.error,
     })
 
-
+# Sends back the report.html file from that job's output folder.
 @app.route('/api/job/<job_id>/report')
 def get_report(job_id):
     if job_id not in JOBS:
@@ -149,6 +161,7 @@ def get_report(job_id):
         return jsonify({'error': 'Report not generated'}), 404
     return send_file(report, as_attachment=True)
 
+# Zips up everything in the job's output folder and sends it as a downloadable file.
 @app.route('/api/job/<job_id>/download')
 def download_results(job_id):
     if job_id not in JOBS:
@@ -168,5 +181,6 @@ def download_results(job_id):
         return jsonify({'error': 'No output files generated'}), 404
     return send_file(zip_path, as_attachment=True)
 
+# Starts the server on port 5000, accessible from any network address.
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
